@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat App</title>
+  <link rel="stylesheet" href="/css/bootstrap.css">
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+  <script src="https://code.jquery.com/ui/1.14.0/jquery-ui.min.js" integrity="sha256-Fb0zP4jE3JHqu+IBB9YktLcSjI1Zc6J2b6gTjB0LpoM=" crossorigin="anonymous"></script>
+  <script src="/js/bootstrap.js"></script>
+  <script src="/js/bootstrap.bundle.js"></script>
+</head>
+<body>
+
+<!--  html 전체 영역을 지정하는 container -->
+<div class="container">
+  <div class="position-absolute w-25 top-50 start-50 translate-middle login-grid">
+
+    <div class="card border-0" id="header">
+      <div class="card-body align-self-center">
+        <h4>로그인</h4>
+      </div>
+    </div>
+
+    <div class="input-form-box">
+      <label for="username">이메일</label>
+      <input type="email" id="username" class="form-control" required />
+    </div>
+    <div class="input-form-box">
+      <label for="password">패스워드</label>
+      <input type="password" id="password" class="form-control" required />
+    </div>
+
+    <div class="button-login-box mt-3">
+      <button type="button" class="btn btn-primary btn-xs w-100" onclick="fn_login()">로그인</button>
+    </div>
+
+
+  </div>
+</div>
+
+<script>
+
+/** login function **/
+const fn_login = function () {
+  $('.alert').alert('close');
+  let login = {};
+  const reqInput = $('.login-grid input');
+
+  reqInput.each(function (i,t) {
+    if( t.required && t.value === '' ) {
+      $('#header').append('<div class="alert alert-danger alert-dismissible" role="alert">'+t.labels[0].textContent+'을 입력해주세요.</div>');
+      t.focus();
+      return false;
+    } else {
+      login[t.id] = t.value;
+    }
+  })
+
+  $.ajax({
+    url: "http://localhost:8080/api/auth/login",
+    type: "POST",
+    data: JSON.stringify(login),
+    dataType: "text",
+    contentType:"application/json",
+    success: function (response) {
+      console.log(response);
+      if(response) {
+
+      }
+    },
+    error: function (err) {
+      $('#header').append('<div class="alert alert-danger alert-dismissible" role="alert">'+err.responseText+'</div>');
+    }
+  })
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat App</title>
+  <link rel="stylesheet" href="/css/bootstrap.css">
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+  <script src="https://code.jquery.com/ui/1.14.0/jquery-ui.min.js" integrity="sha256-Fb0zP4jE3JHqu+IBB9YktLcSjI1Zc6J2b6gTjB0LpoM=" crossorigin="anonymous"></script>
+  <script src="/js/bootstrap.js"></script>
+  <script src="/js/bootstrap.bundle.js"></script>
+  <script src="/js/common.js"></script>
+</head>
+<body>
+
+<!--  html 전체 영역을 지정하는 container -->
+<div class="container">
+  <div class="position-absolute w-25 top-50 start-50 translate-middle login-grid">
+
+    <div class="card border-0" id="header">
+      <div class="card-body align-self-center">
+        <h2>로그인</h2>
+      </div>
+    </div>
+
+    <div class="input-form-box">
+      <label for="username">이메일</label>
+      <input type="email" id="username" class="form-control" required />
+    </div>
+    <div class="input-form-box">
+      <label for="password">패스워드</label>
+      <input type="password" id="password" class="form-control" required />
+    </div>
+
+    <div class="button-login-box mt-3">
+      <button type="button" class="btn btn-primary btn-xs w-100" onclick="fn_login()">로그인</button>
+      <div class="text-center">
+        <a href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#forgetModal">비밀번호 찾기</a>
+      </div>
+    </div>
+
+    <div class="card mt-5">
+      <div class="card-body">
+        <h4 class="text-center">회원 가입</h4>
+        <button type="button" data-bs-toggle="modal" data-bs-target="#joinModal" class="btn btn-purple btn-xs w-100" >회원 가입</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="forgetModal" tabindex="-1" aria-labelledby="forgetModal" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title fs-5">계정 찾기</h3>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body">
+        <div class="mb-3">
+          <span>
+            이메일 주소로 임시 비밀번호를 보내드립니다.<br>
+            메일이 오지 않는경우 메일 주소를 확인 후 다시 시도해주세요.
+          </span>
+        </div>
+        <div class="mb-3">
+          <label for="forget-modal-email" class="col-form-label">이메일</label>
+          <div class="input-group">
+            <input type="text" class="form-control" id="forget-modal-email" />
+            <button type="button" class="btn btn-primary" onclick="fn_email_certification('forget')">확인</button>
+          </div>
+        </div>
+
+        <div class="mb-3" style="display: none" id="forget-cert-div">
+          <label for="forget-modal-certification" class="col-form-label">인증번호</label>
+          <div class="input-group">
+            <input type="text" class="form-control" id="forget-modal-certification" />
+            <button type="button" id="forget-cert-btn" class="btn btn-success" onclick="fn_certCheck(this)">인증하기</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="joinModal" tabindex="-1" aria-labelledby="joinModal" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title fs-5">회원 가입</h3>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label for="join-modal-email" class="col-form-label">이메일</label>
+          <div class="input-group">
+            <input type="text" class="form-control" id="join-modal-email" />
+            <button type="button" class="btn btn-success" onclick="fn_userDupCheck('join')">확인</button>
+          </div>
+        </div>
+
+        <div class="mb-3" style="display: none" id="join-cert-div">
+          <label for="join-modal-certification" class="col-form-label">인증번호</label>
+          <div class="input-group">
+            <input type="text" class="form-control" id="join-modal-certification" />
+            <button type="button" id="join-cert-btn" class="btn btn-success" onclick="fn_certCheck(this)">인증하기</button>
+          </div>
+        </div>
+
+        <div class="mb-3" id="join-password-div" style="display: none">
+          <label for="join-modal-Password" class="col-form-label">Password:</label>
+          <input type="password" class="form-control" id="join-modal-Password" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
+        <button type="button" class="btn btn-primary">가입</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// 이메일 정규식
+const emailReg = /^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$/;
+
+/** 로그인 **/
+const fn_login = function () {
+  // 알림 초기화
+  $('.alert').alert('close');
+
+  // 파라미터 셋팅
+  let login = {};
+  login.username = $('#username').val().trim();
+  if( login.username === '' ) {
+    $('#header').append('<div class="alert alert-danger alert-dismissible" role="alert">메일 주소를 입력해주세요.</div>');
+    $('#username').focus();
+    return false;
+  } else {
+    if( !emailReg.test(login.username) ) {
+      $('#username').focus();
+      $('#header').append('<div class="alert alert-danger alert-dismissible" role="alert">메일 주소를 올바르게 입력해주세요.</div>');
+      return false;
+    }
+  }
+
+  login.password = $('#password').val().trim();
+  if(login.password === '') {
+    $('#password').focus();
+    $('#header').append('<div class="alert alert-danger alert-dismissible" role="alert">비밀번호를 입력해주세요.</div>');
+    return false;
+  }
+
+  $.ajax({
+    url: "http://localhost:8080/api/auth/login",
+    type: "POST",
+    data: JSON.stringify(login),
+    dataType: "text",
+    contentType:"application/json",
+    success: function (response) {
+      // 메인 페이지 이동
+    },
+    error: function (err) {
+      $('#header').append('<div class="alert alert-danger alert-dismissible" role="alert">'+err.responseText+'</div>');
+    }
+  })
+}
+
+/** 임시 번호 발급 **/
+const fn_email_certification = function (type) {
+
+  $('#'+type+'Modal .alert').alert('close');
+
+  let param = {};
+  const email = $('#'+type+'-modal-email');
+
+  param.email = email.val();
+  if(param.email === '') {
+    $('#'+type+'Modal .modal-body').append('<div class="alert alert-danger alert-dismissible" role="alert">메일 주소를 입력해주세요.</div>');
+    email.focus();
+    return false;
+  } else {
+    if( !emailReg.test(param.email) ) {
+      $('#'+type+'Modal .modal-body').append('<div class="alert alert-danger alert-dismissible" role="alert">메일 주소를 올바르게 입력해주세요.</div>');
+      email.focus();
+      return false;
+    }
+  }
+
+  $('#'+type+'Modal .alert').alert('close');
+
+  // 비밀번호 찾기 일 시 메일 발송 후 바로 닫기
+  if( type === 'forget' ) {
+    $('#forgetModal .modal-footer button').click();
+  } else if( type === 'join' ) {
+    $('#'+type+'-cert-div').show();
+    $('#'+type+'Modal .modal-body').append('<div class="alert alert-primary alert-dismissible" role="alert">메일 주소로 인증번호를 보내드렸습니다.<br>메일이 오지 않는경우 메일 주소를 확인 후<br>다시 시도해주세요.</div>');
+  }
+
+  $.ajax({
+    url: "http://localhost:8080/api/send-mail/email",
+    type: "POST",
+    data: JSON.stringify(param),
+    dataType: "text",
+    contentType:"application/json",
+    success: function (response) {
+      if( type === 'join' ) {
+        $('#'+type+'-cert-btn').data('cert',JSON.parse(response).code);
+      }
+    },
+    error: function (err) {
+      $('#'+type+'Modal .modal-body').append('<div class="alert alert-danger alert-dismissible" role="alert">이메일을 정확히 입력해주세요.</div>');
+      email.focus();
+    }
+  })
+}
+
+// 인증 번호 확인
+const fn_certCheck = function (btn) {
+  $(btn).parents('.modal').find('.alert').alert('close');
+
+  let certStr = $(btn).siblings('input').val();
+  if( $(btn).data('cert') !== certStr ) {
+    $(btn).parents('.modal-body').append('<div class="alert alert-danger alert-dismissible" role="alert">인증번호가 일치하지 않습니다.<br>확인 후 재시도 바랍니다.</div>');
+  } else {
+    // 회원가입 일 시 패스워드 입력 란 노출
+    if(btn.id === 'join-cert-btn') {
+      $('#join-password-div').show();
+    }
+  }
+}
+
+// 메일 주소 중복 체크
+var fn_userDupCheck = function (type) {
+  $.ajax({
+    url: "http://localhost:8080/api/auth/existsByUsername",
+    type: "POST",
+    data: JSON.stringify({'username':$('#join-modal-email').val()}),
+    dataType: "text",
+    contentType:"application/json",
+    beforeSend: function (xhr) {
+      uiBlock.loadingUIshow();
+    },
+    success: function (response) {
+      uiBlock.loadingUIhide();
+      if(response) {
+        $('#joinModal .modal-body').append('<div class="alert alert-danger alert-dismissible" role="alert">'+response+'</div>');
+      } else {
+        fn_email_certification(type);
+      }
+    },
+    error: function (err) {
+      uiBlock.loadingUIhide();
+      console.log(err)
+    }
+  })
+}
+
+// 가입 함수 생성 필요
+</script>
+
+</body>
+</html>
