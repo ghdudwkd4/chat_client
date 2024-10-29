@@ -9,7 +9,23 @@
   <script src="https://code.jquery.com/ui/1.14.0/jquery-ui.min.js" integrity="sha256-Fb0zP4jE3JHqu+IBB9YktLcSjI1Zc6J2b6gTjB0LpoM=" crossorigin="anonymous"></script>
   <script src="/js/bootstrap.js"></script>
   <script src="/js/bootstrap.bundle.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script src="/js/index.js"></script>
   <script src="/js/common.js"></script>
+  <style>
+    .vibration {
+      animation: vibration .2s infinite;
+    }
+    @keyframes vibration {
+      from {
+        transform: rotate(1deg);
+      }
+      to {
+        transform: rotate(-1deg);
+      }
+    }
+  </style>
 </head>
 <body>
 
@@ -67,7 +83,7 @@
           <label for="forget-modal-email" class="col-form-label">이메일</label>
           <div class="input-group">
             <input type="text" class="form-control" id="forget-modal-email" />
-            <button type="button" class="btn btn-primary" onclick="fn_email_certification('forget')">확인</button>
+            <button type="button" id="forget-modal-dup" class="btn btn-primary">확인</button>
           </div>
         </div>
 
@@ -95,11 +111,11 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        <div class="mb-3">
+        <div class="mb-3" id="join-email-div">
           <label for="join-modal-email" class="col-form-label">이메일</label>
           <div class="input-group">
             <input type="text" class="form-control" id="join-modal-email" />
-            <button type="button" class="btn btn-success" onclick="fn_userDupCheck('join')">확인</button>
+            <button type="button" id="join-modal-dup" class="btn btn-success">확인</button>
           </div>
         </div>
 
@@ -112,21 +128,109 @@
         </div>
 
         <div class="mb-3" id="join-password-div" style="display: none">
-          <label for="join-modal-Password" class="col-form-label">Password:</label>
-          <input type="password" class="form-control" id="join-modal-Password" />
+          <label for="join-modal-password" class="col-form-label">Password</label>
+          <input type="password" class="form-control" id="join-modal-password" placeholder="대문자, 소문자, 특수문자 최소 1개씩 6~12자리 입력" />
         </div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
-        <button type="button" class="btn btn-primary">가입</button>
+        <button type="button" class="btn btn-primary" onclick="fn_join()">가입</button>
       </div>
     </div>
   </div>
 </div>
 
 <script>
+$(function (){
+  // 회원가입
+  $('#join-modal-dup').on('click', async function (){
+
+    $('#joinModal .alert').alert('close');
+    const email = $('#join-modal-email');
+
+    if(email.val() === '') {
+      $('#joinModal .modal-body').append('<div class="alert alert-danger alert-dismissible" role="alert">메일 주소를 입력해주세요.</div>');
+      email.focus();
+      fn_vibration( email );
+      return false;
+    } else {
+      if( !emailReg.test(email.val()) ) {
+        $('#joinModal .modal-body').append('<div class="alert alert-danger alert-dismissible" role="alert">메일 주소를 올바르게 입력해주세요.</div>');
+        email.focus();
+        fn_vibration( email );
+        return false;
+      }
+    }
+
+    const exists = await fn_existsByUsername(email.val());
+    if( !exists.data ) {
+        $('#joinModal').find('.alert').alert('close');
+        $('#joinModal .modal-body').append('<div class="alert alert-danger alert-dismissible" role="alert">이미 사용중인 이메일 입니다.</div>');
+        fn_vibration( $('#joinModal .modal-body').find('.alert') );
+    } else {
+      await fn_email_certification('join');
+    }
+  })
+
+  // 비밀번호 찾기
+  $('#forget-modal-dup').on('click', async function (){
+
+    $('#forgetModal .alert').alert('close');
+    const email = $('#forget-modal-email');
+
+    if(email.val() === '') {
+      $('#forgetModal .modal-body').append('<div class="alert alert-danger alert-dismissible" role="alert">메일 주소를 입력해주세요.</div>');
+      email.focus();
+      fn_vibration( email );
+      return false;
+    } else {
+      if( !emailReg.test(email.val()) ) {
+        $('#forgetModal .modal-body').append('<div class="alert alert-danger alert-dismissible" role="alert">메일 주소를 올바르게 입력해주세요.</div>');
+        email.focus();
+        fn_vibration( email );
+        return false;
+      }
+    }
+
+    const exists = await fn_existsByUsername(email.val());
+    if( exists.data ) {
+      $('#forgetModal').find('.alert').alert('close');
+      $('#forgetModal .modal-body').append('<div class="alert alert-danger alert-dismissible" role="alert">존재하지 않는 계정입니다.<br>회원가입 후 이용바랍니다.</div>');
+      fn_vibration( $('#forgetModal .modal-body').find('.alert') );
+    } else {
+      const cert = await fn_email_certification('forget');
+      console.log(cert);
+    }
+  })
+
+})
+
+// 비밀번호 찾기 모달창 초기화
+document.getElementById('forgetModal').addEventListener('shown.bs.modal', (e) => {
+  $(e.target).find('.mb-3').find('input').val('');
+  $(e.target).find('.alert').alert('close');
+})
+// 회원가입 모달창 초기화
+document.getElementById('joinModal').addEventListener('shown.bs.modal', (e) => {
+  $(e.target).find('.mb-3').find('input').val('');
+  $(e.target).find('.mb-3').hide();
+  $(e.target).find('.alert').alert('close');
+  $(e.target).find('#join-email-div').show();
+})
+
 // 이메일 정규식
 const emailReg = /^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$/;
+// 비밀번호 정규식
+const passReg = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\W).{6,12}$/;
+
+// 알림 진동
+const fn_vibration = function (tag) {
+  tag.addClass('vibration');
+
+  setTimeout(function () {
+    tag.removeClass('vibration');
+  }, 400)
+}
 
 /** 로그인 **/
 const fn_login = function () {
@@ -139,11 +243,13 @@ const fn_login = function () {
   if( login.username === '' ) {
     $('#header').append('<div class="alert alert-danger alert-dismissible" role="alert">메일 주소를 입력해주세요.</div>');
     $('#username').focus();
+    fn_vibration( $('#username') );
     return false;
   } else {
     if( !emailReg.test(login.username) ) {
       $('#username').focus();
       $('#header').append('<div class="alert alert-danger alert-dismissible" role="alert">메일 주소를 올바르게 입력해주세요.</div>');
+      fn_vibration( $('#username') );
       return false;
     }
   }
@@ -152,46 +258,34 @@ const fn_login = function () {
   if(login.password === '') {
     $('#password').focus();
     $('#header').append('<div class="alert alert-danger alert-dismissible" role="alert">비밀번호를 입력해주세요.</div>');
+    fn_vibration( $('#password') );
     return false;
   }
 
-  $.ajax({
-    url: "http://localhost:8080/api/auth/login",
-    type: "POST",
-    data: JSON.stringify(login),
-    dataType: "text",
-    contentType:"application/json",
-    success: function (response) {
-      // 메인 페이지 이동
-    },
-    error: function (err) {
-      $('#header').append('<div class="alert alert-danger alert-dismissible" role="alert">'+err.responseText+'</div>');
-    }
-  })
+  apiClient.post("http://localhost:8080/api/auth/login" , JSON.stringify(login))
+          .then(response => {
+            // 메인 페이지 이동
+            location.href="/chat/chat.html"
+          })
+          .catch(err => {
+            $('#header').append('<div class="alert alert-danger alert-dismissible" role="alert">'+err.response.data+'</div>');
+            fn_vibration( $('#header').find('.alert') );
+          });
 }
 
 /** 임시 번호 발급 **/
-const fn_email_certification = function (type) {
+const fn_email_certification = async function (type) {
 
   $('#'+type+'Modal .alert').alert('close');
 
   let param = {};
   const email = $('#'+type+'-modal-email');
-
   param.email = email.val();
-  if(param.email === '') {
-    $('#'+type+'Modal .modal-body').append('<div class="alert alert-danger alert-dismissible" role="alert">메일 주소를 입력해주세요.</div>');
-    email.focus();
-    return false;
-  } else {
-    if( !emailReg.test(param.email) ) {
-      $('#'+type+'Modal .modal-body').append('<div class="alert alert-danger alert-dismissible" role="alert">메일 주소를 올바르게 입력해주세요.</div>');
-      email.focus();
-      return false;
-    }
-  }
+
 
   $('#'+type+'Modal .alert').alert('close');
+
+  const url = (type === 'forget' ? 'password' : 'email');
 
   // 비밀번호 찾기 일 시 메일 발송 후 바로 닫기
   if( type === 'forget' ) {
@@ -199,24 +293,20 @@ const fn_email_certification = function (type) {
   } else if( type === 'join' ) {
     $('#'+type+'-cert-div').show();
     $('#'+type+'Modal .modal-body').append('<div class="alert alert-primary alert-dismissible" role="alert">메일 주소로 인증번호를 보내드렸습니다.<br>메일이 오지 않는경우 메일 주소를 확인 후<br>다시 시도해주세요.</div>');
+    fn_vibration( $('#'+type+'Modal .modal-body').find('.alert') );
   }
 
-  $.ajax({
-    url: "http://localhost:8080/api/send-mail/email",
-    type: "POST",
-    data: JSON.stringify(param),
-    dataType: "text",
-    contentType:"application/json",
-    success: function (response) {
-      if( type === 'join' ) {
-        $('#'+type+'-cert-btn').data('cert',JSON.parse(response).code);
-      }
-    },
-    error: function (err) {
-      $('#'+type+'Modal .modal-body').append('<div class="alert alert-danger alert-dismissible" role="alert">이메일을 정확히 입력해주세요.</div>');
-      email.focus();
-    }
-  })
+  await apiClient.post("http://localhost:8080/api/send-mail/" + url , JSON.stringify(param))
+          .then(response => {
+            if( type === 'join' ) {
+              $('#'+type+'-cert-btn').data('cert',response.data.code);
+            }
+          })
+          .catch(err => {
+            $('#'+type+'Modal .modal-body').append('<div class="alert alert-danger alert-dismissible" role="alert">이메일을 정확히 입력해주세요.</div>');
+            fn_vibration( $('#'+type+'Modal .modal-body').find('.alert') );
+            email.focus();
+          });
 }
 
 // 인증 번호 확인
@@ -226,41 +316,57 @@ const fn_certCheck = function (btn) {
   let certStr = $(btn).siblings('input').val();
   if( $(btn).data('cert') !== certStr ) {
     $(btn).parents('.modal-body').append('<div class="alert alert-danger alert-dismissible" role="alert">인증번호가 일치하지 않습니다.<br>확인 후 재시도 바랍니다.</div>');
+    fn_vibration( $(btn).parents('.modal-body').find('.alert') );
   } else {
     // 회원가입 일 시 패스워드 입력 란 노출
     if(btn.id === 'join-cert-btn') {
+      $(btn).parents('.modal').find('.modal-body').children().not('#join-password-div').hide();
       $('#join-password-div').show();
     }
   }
 }
 
 // 메일 주소 중복 체크
-var fn_userDupCheck = function (type) {
-  $.ajax({
-    url: "http://localhost:8080/api/auth/existsByUsername",
-    type: "POST",
-    data: JSON.stringify({'username':$('#join-modal-email').val()}),
-    dataType: "text",
-    contentType:"application/json",
-    beforeSend: function (xhr) {
-      uiBlock.loadingUIshow();
-    },
-    success: function (response) {
-      uiBlock.loadingUIhide();
-      if(response) {
-        $('#joinModal .modal-body').append('<div class="alert alert-danger alert-dismissible" role="alert">'+response+'</div>');
-      } else {
-        fn_email_certification(type);
-      }
-    },
-    error: function (err) {
-      uiBlock.loadingUIhide();
-      console.log(err)
-    }
-  })
+const fn_existsByUsername = async function (username) {
+  let data;
+  await apiClient.post("http://localhost:8080/api/auth/existsByUsername"
+          , JSON.stringify({'username':username})
+          , {headers:{'async': 'false'}})
+          .then(response => {
+            data = response;
+          })
+          .catch(err => {
+            console.log(err.response.data)
+          })
+  return data;
 }
 
-// 가입 함수 생성 필요
+// 가입
+const fn_join = function () {
+  const param = {};
+  param.username = $('#join-modal-email').val();
+  param.password = $('#join-modal-password').val().trim();
+  if( !passReg.test(param.password) ) {
+    $('#joinModal').find('.alert').alert('close');
+    $('#joinModal .modal-body').append('<div class="alert alert-danger alert-dismissible" role="alert">대문자, 소문자, 특수문자 최소 1개씩 6~12자리 입력</div>');
+    fn_vibration( $('#joinModal .modal-body').find('.alert') );
+  } else {
+
+    apiClient.post("http://localhost:8080/api/auth/register" , JSON.stringify(param))
+            .then(response => {
+              if(response) {
+                location.href='/chat_client/chat/chat.html';
+              } else {
+                fn_email_certification(type);
+              }
+            })
+            .catch(err => {
+              $('#joinModal .modal-body').append('<div class="alert alert-danger alert-dismissible" role="alert">'+err.response.data+'</div>');
+              fn_vibration( $('#joinModal .modal-body').find('.alert') );
+            })
+  }
+}
+
 </script>
 
 </body>

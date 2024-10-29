@@ -1,0 +1,18 @@
+{
+  "name": "chat_client",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ghdudwkd4/chat_client.git"
+  },
+  "private": true,
+  "dependencies": {
+    "axios": "^1.7.7"
+  },
+  "type": "module"
+}
