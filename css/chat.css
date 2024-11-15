@@ -378,6 +378,30 @@ a.add img {
     border-bottom: 1px solid #ccc;
 }
 
+.msg-head .row .button-area {
+
+}
+
+.msg-head .row .button-area button {
+    width: 45%;
+    border: none;
+    padding: 0.375rem 5px;
+    border-radius: 0.25rem;
+    font-size: 14px;
+    font-weight: 400;
+}
+.msg-head .row .button-area .fr {
+    float: right;
+}
+.msg-head .row .button-area .primary {
+    background: #3867d6;
+    color: #fff;
+}
+.msg-head .row .button-area .danger {
+    background: #d63838;
+    color: #fff;
+}
+
 .moreoption {
     display: flex;
     align-items: center;
@@ -558,7 +582,7 @@ li.repaly .time {
     border-top: 1px solid #ccc;
 }
 
-.send-box form {
+.send-box .send-form {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -736,6 +760,7 @@ button:focus {
     .msg-head .flex-shrink-0 img {
         height: 30px;
     }
+
     .send-box button {
         width: 28%;
     }

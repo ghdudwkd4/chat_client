@@ -8,10 +8,20 @@
   <link rel="stylesheet" href="/css/bootstrap.css">
   <link rel="stylesheet" href="/css/chat.css">
 
+<!--
+  socket
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/stompjs/lib/stomp.min.js"></script>
+-->
+
   <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
   <script src="https://code.jquery.com/ui/1.14.0/jquery-ui.min.js" integrity="sha256-Fb0zP4jE3JHqu+IBB9YktLcSjI1Zc6J2b6gTjB0LpoM=" crossorigin="anonymous"></script>
   <script src="/js/bootstrap.js"></script>
   <script src="/js/bootstrap.bundle.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script src="/js/index.js"></script>
+
 </head>
 <body>
 
@@ -34,10 +44,10 @@
 
                   <ul class="nav nav-tabs" id="myTab" role="tablist">
                     <li class="nav-item" role="presentation">
-                      <button class="nav-link active" id="Open-tab" data-bs-toggle="tab" data-bs-target="#Open" type="button" role="tab" aria-controls="Open" aria-selected="true">Open</button>
+                      <button class="nav-link active" id="user-tab" type="button" >사용자</button>
                     </li>
                     <li class="nav-item" role="presentation">
-                      <button class="nav-link" id="Closed-tab" data-bs-toggle="tab" data-bs-target="#Closed" type="button" role="tab" aria-controls="Closed" aria-selected="false">Closed</button>
+                      <button class="nav-link" id="chat-tab" type="button" >채팅방</button>
                     </li>
                   </ul>
                 </div>
@@ -46,12 +56,13 @@
                   <!-- chat-list -->
                   <div class="chat-lists">
                     <div class="tab-content" id="myTabContent">
-                      <div class="tab-pane fade show active" id="Open" role="tabpanel" aria-labelledby="Open-tab">
-                        <!-- chat-list -->
-                        <div class="chat-list">
+                      <div class="tab-pane fade show active" id="userWrap">
+                        <!-- user-list -->
+                        <div class="chat-list" id="userDiv">
+                          <!--
                           <a href="#" class="d-flex align-items-center">
                             <div class="flex-shrink-0">
-                              <img class="img-fluid" src="https://mehedihtml.com/chatbox/assets/img/user.png" alt="user img">
+                              <img class="img-fluid" src="" alt="user img">
                               <span class="active"></span>
                             </div>
                             <div class="flex-grow-1 ms-3">
@@ -59,33 +70,16 @@
                               <p>front end developer</p>
                             </div>
                           </a>
-                          <a href="#" class="d-flex align-items-center">
-                            <div class="flex-shrink-0">
-                              <img class="img-fluid" src="https://mehedihtml.com/chatbox/assets/img/user.png" alt="user img">
-                            </div>
-                            <div class="flex-grow-1 ms-3">
-                              <h3>Ryhan</h3>
-                              <p>front end developer</p>
-                            </div>
-                          </a>
-                          <a href="#" class="d-flex align-items-center">
-                            <div class="flex-shrink-0">
-                              <img class="img-fluid" src="https://mehedihtml.com/chatbox/assets/img/user.png" alt="user img">
-                            </div>
-                            <div class="flex-grow-1 ms-3">
-                              <h3>Ryhan</h3>
-                              <p>front end developer</p>
-                            </div>
-                          </a>
-
+                          -->
 
                         </div>
-                        <!-- chat-list -->
+                        <!-- user-list -->
                       </div>
-                      <div class="tab-pane fade" id="Closed" role="tabpanel" aria-labelledby="Closed-tab">
+                      <div class="tab-pane fade" id="roomWrap">
 
                         <!-- chat-list -->
-                        <div class="chat-list">
+                        <div class="chat-list" id="roomDiv">
+                          <!--
                           <a href="#" class="d-flex align-items-center">
                             <div class="flex-shrink-0">
                               <img class="img-fluid" src="https://mehedihtml.com/chatbox/assets/img/user.png" alt="user img">
@@ -96,16 +90,7 @@
                               <p>front end developer</p>
                             </div>
                           </a>
-                          <a href="#" class="d-flex align-items-center">
-                            <div class="flex-shrink-0">
-                              <img class="img-fluid" src="https://mehedihtml.com/chatbox/assets/img/user.png" alt="user img">
-                            </div>
-                            <div class="flex-grow-1 ms-3">
-                              <h3>Ryhan</h3>
-                              <p>front end developer</p>
-                            </div>
-                          </a>
-
+                          -->
                         </div>
                         <!-- chat-list -->
                       </div>
@@ -129,42 +114,29 @@
                   <div class="row">
                     <div class="col-8">
                       <div class="d-flex align-items-center">
-                        <span class="chat-icon"><img class="img-fluid" src="https://mehedihtml.com/chatbox/assets/img/arroleftt.svg" alt="image title"></span>
-                        <div class="flex-shrink-0">
-                          <img class="img-fluid" src="https://mehedihtml.com/chatbox/assets/img/user.png" alt="user img">
+                        <div class="flex-shrink-0" id="partner-img">
+
                         </div>
                         <div class="flex-grow-1 ms-3">
-                          <h3>Mehedi Hasan</h3>
-                          <p>front end developer</p>
+                          <h3 id="partner"></h3>
+                          <!--<p id="partner-job"></p>-->
                         </div>
                       </div>
                     </div>
-                    <!--
-                    <div class="col-4">
-                      <ul class="moreoption">
-                        <li class="navbar nav-item dropdown">
-                          <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fa fa-ellipsis-v" aria-hidden="true"></i>
-                          </a>
-                          <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="#">Action</a></li>
-                            <li><a class="dropdown-item" href="#">Another action</a></li>
-                            <li>
-                              <hr class="dropdown-divider">
-                            </li>
-                            <li><a class="dropdown-item" href="#">Something else here</a></li>
-                          </ul>
-                        </li>
-                      </ul>
+
+                    <div class="col-4 button-area">
+                      <button type="button" id="delChatBtn" class="danger" style="display: none;" onclick="fn_getChat.delChat()">채팅방 나가기</button>
+                      <button type="button" class="primary fr" onclick="fn_getChat.logout()">로그아웃</button>
                     </div>
-                    -->
+
                   </div>
                 </div>
 
 
-                <div class="modal-body">
+                <div class="modal-body" id="msgBody">
                   <div class="msg-body">
-                    <ul>
+                    <ul id="msg-data">
+                      <!--
                       <li class="sender">
                         <p> Hey, Are you there? </p>
                         <span class="time">10:06 am</span>
@@ -203,18 +175,17 @@
                         <p>yes... on it</p>
                         <span class="time">junt now</span>
                       </li>
-
+                      -->
                     </ul>
                   </div>
                 </div>
 
 
                 <div class="send-box">
-                  <form action="">
-                    <input type="text" class="form-control" aria-label="message…" placeholder="Write message…">
-
-                    <button type="button"><i class="fa fa-paper-plane" aria-hidden="true"></i> Send</button>
-                  </form>
+                  <div class="send-form">
+                    <input type="text" id="sendInput" class="form-control" aria-label="메세지를 입력해주세요" placeholder="메세지를 입력해주세요">
+                    <button type="button" onclick="fn_getChat.sendMsg()"><i class="fa fa-paper-plane" aria-hidden="true"></i> Send</button>
+                  </div>
 
                   <div class="send-btns">
                     <div class="attach">
@@ -256,18 +227,326 @@
 </section>
 <!-- char-area -->
 
+<!-- 회원가입 모달창 -->
+<div class="modal fade" id="joinModal" tabindex="-1" aria-labelledby="joinModal" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title fs-5">회원 가입</h3>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3" id="join-email-div">
+          <label for="join-modal-email" class="col-form-label">이메일</label>
+          <div class="input-group">
+            <input type="text" class="form-control" id="join-modal-email" />
+            <button type="button" id="join-modal-dup" class="btn btn-success">확인</button>
+          </div>
+        </div>
+
+        <div class="mb-3" id="join-cert-div">
+          <label for="join-modal-certification" class="col-form-label">인증번호</label>
+          <div class="input-group">
+            <input type="text" class="form-control" id="join-modal-certification" />
+            <button type="button" id="join-cert-btn" class="btn btn-success" >인증하기</button>
+          </div>
+        </div>
+
+        <div class="mb-3" id="join-password-div">
+          <label for="join-modal-nickname" class="col-form-label">Nickname</label>
+          <input type="text" class="form-control" id="join-modal-nickname" placeholder="닉네임을 입력해주세요." />
+          <label for="join-modal-password" class="col-form-label">Password</label>
+          <input type="password" class="form-control" id="join-modal-password" placeholder="대문자, 소문자, 특수문자 최소 1개씩 6~12자리 입력" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
+        <button type="button" class="btn btn-primary" onclick="fn_join()">가입</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 </body>
 <script>
   $(function (){
-    $(".chat-list a").click(function() {
-      $(".chatbox").addClass('showbox');
-      return false;
-    });
-
-    $(".chat-icon").click(function() {
-      $(".chatbox").removeClass('showbox');
-    });
+    fn_getChat.init();
   })
+
+// 테스트용!!!!
+let eventSource;
+
+// global param
+let gRoomId;
+
+// 채팅 방
+const fn_getChat = (function (){
+
+  // 날짜 포멧
+  const dateFormatter = function (date , type) {
+    date = new Date(date);
+    // 포멧 형식 ::: 연,월,일,시간
+    if( type === 'ymdhs' ) {
+      return date.toLocaleString("ko-KR", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "numeric",
+        minute: "numeric",
+        hour12: true,
+      });
+    } else {
+    // 포멧 형식 ::: 시간
+      return date.toLocaleString("ko-KR", {
+        hour: "numeric",
+        minute: "numeric",
+        hour12: true,
+      });
+    }
+  }
+  
+  return {
+    init : function () {
+      // 첫 로딩 사용자 목록 조회
+      fn_getChat.getUser();
+
+      // 사용자
+      $('#user-tab').on('click',function (){
+        // ===== 사용자 css active
+        $(this).parents('.nav-tabs').find('button').removeClass('active');
+        $('#roomWrap').removeClass('show').removeClass('active');
+
+        $(this).addClass('active');
+        $('#userWrap').addClass('show').addClass('active');
+        // ===== 사용자 css active
+
+        fn_getChat.getUser();
+      })
+
+      // 채팅방
+      $('#chat-tab').on('click',function (){
+        // ===== 채팅방 css active
+        $(this).parents('.nav-tabs').find('button').removeClass('active');
+        $('#userWrap').removeClass('show').removeClass('active');
+
+        $(this).addClass('active');
+        $('#roomWrap').addClass('show').addClass('active');
+        // ===== 채팅방 css active
+
+        fn_getChat.getRoom();
+      })
+
+      // 메세지 전송
+      $('#sendInput').on('keyup',function (e) {
+        if(e.keyCode == 13) fn_getChat.sendMsg();
+      })
+
+    },
+    /** 사용자 조회 **/
+    getUser : function () {
+      apiClient.post("http://localhost:8080/api/user/all")
+              .then(response => {
+                $('#userDiv').empty();
+
+                if(response.status < 200) {
+                  return alert('조회에 실패하였습니다.')
+                }
+
+                response.data.forEach((d , i) => {
+                  let html  = '<a href="javascript:void(0)" class="d-flex align-items-center user'+i+'">';
+                      html += ' <div class="flex-shrink-0">';
+                      html += '   <img class="img-fluid" src="/img/no-img.png" alt="user img" />';
+                      html += '   <span class="'+(d.status==="Y"?"active":"")+'"></span>';
+                      html += ' </div>';
+                      html += ' <div class="flex-grow-1 ms-3">';
+                      html += '   <h3>'+d.nickname+'</h3>';
+                      html += '   <p>'+d.job+'</p>';
+                      html += ' </div>';
+                      html += '</a>';
+                  $('#userDiv').append(html);
+                  $('#userDiv .user'+i).data('data',d);
+                })
+
+                // 사용자 더블 클릭 시 : 채팅 방 존재 여부 체크
+                $('#userDiv a').off().on('dblclick' , function (e) {
+                  const data = $(this).data('data');
+                  fn_getChat.getRoomCheck(data)
+                })
+              })
+              .catch(err => {
+                console.log(err);
+              });
+    },
+    /** 채팅방 목록 조회 **/
+    getRoom : function () {
+      apiClient.post("http://localhost:8081/api/room/all" , JSON.stringify({userIdArr:[localStorage.getItem('userId')]}))
+              .then(response => {
+                $('#roomDiv').empty();
+
+                if(response.status < 200) {
+                  return alert('조회에 실패하였습니다.')
+                }
+
+                response.data.forEach((d , i) => {
+                  let html  = '<a href="javascript:void(0)" class="d-flex align-items-center user'+i+'">';
+                      html += ' <div class="flex-shrink-0">';
+                      html += '   <img class="img-fluid" src="/img/no-img.png" alt="user img" />';
+                      html += '   <span class="'+(d.status==="Y"?"active":"")+'"></span>';
+                      html += ' </div>';
+                      html += ' <div class="flex-grow-1 ms-3">';
+                      html += '   <h3>'+d.roomNm+'</h3>';
+                      // html += '   <p>'+d.job+'</p>';
+                      html += ' </div>';
+                      html += '</a>';
+                  $('#roomDiv').append(html);
+                  $('#roomDiv .user'+i).data('data',d);
+                })
+
+                // 채팅 방 더블 클릭 시 : 채팅 방 대화 내역 조회 및 SSE 연결
+                $('#roomDiv a').off().on('dblclick' , function (e) {
+                  const data = $(this).data('data');
+
+                  // 채팅 조회
+                  fn_getChat.getChat(data);
+                })
+              })
+              .catch(err => {
+                console.log(err);
+              });
+    },
+    /** 채팅방 초기화 **/
+    setChatClear : function () {
+      // 헤더 부분 초기화
+      $('#partner-img').empty();
+      $('#partner').text('');
+
+      // 대회 내용 초기화
+      $('#msg-data').empty();
+
+      // 채팅방 나가기 hide
+      $('#delChatBtn').hide();
+    },
+    /** 채팅방 체크 **/
+    getRoomCheck : function (data) {
+      const param = {};
+      param.userIdArr = [localStorage.getItem('userId') , data.userId];
+      param.roomNm = data.nickname;
+
+      apiClient.post("http://localhost:8081/api/room/check",JSON.stringify(param))
+              .then(response => {
+                if(response.status < 200) {
+                  return alert('채팅방 조회에 실패하였습니다.')
+                }
+
+                // 채팅방 조회
+                fn_getChat.getChat(response.data);
+              })
+              .catch(err => {
+                console.log(err);
+              });
+    },
+    /** 채팅 내역 조회 **/
+    getChat : async function (data) {
+      let html = '';
+      // 날짜 ymd 포멧
+      const ymdFormatter = { year: "numeric", month: "long", day: "numeric" };
+
+      // 대화 내용 초기화
+      fn_getChat.setChatClear();
+
+      // 채팅방 헤더 세팅
+      $('#partner-img').append('<img class="img-fluid" src="/img/no-img.png" alt="user img">')
+      $('#partner').text(data.roomNm);
+
+      // sse 있을 시 종료
+      if( eventSource ) eventSource.close();
+
+      // 채팅방 ID 설정
+      gRoomId = data.roomId;
+
+      // 채팅방 나가기 show
+      $('#delChatBtn').show();
+
+      // 실시간 대화 조회
+      eventSource = new EventSource(`http://localhost:8081/api/room/${data.roomId}`);
+      eventSource.onmessage = (event) => {
+        html = '';  // 초기화
+        const data = JSON.parse(event.data);
+        
+        let regDt = new Date(data.regDt).toLocaleString("ko-KR", ymdFormatter);
+        let toDay = new Date().toLocaleString("ko-KR", ymdFormatter);
+
+        // 대화 내용이 오늘 날짜 일 경우
+        /*
+        if(created === toDay) {
+          html += '<li><div class="divider"><h6>Today</h6></div></li>';
+        }
+        */
+
+        let time = '';
+        // 지난 대화 일 경우 ::: 연,월,일,시간
+        if(toDay > regDt) {
+          time = dateFormatter(data.regDt , 'ymdhs')
+        } else {
+        // 오늘 대화 내용 일 경우 ::: 시간
+          time = dateFormatter(data.regDt , 'hs')
+        }
+
+        // 본인 글
+        if (data.userId.split('-').find( str => str === localStorage.getItem('userId')) ) {
+          html += '<li class="repaly">';
+          html += ' <p>'+data.content+'</p>';
+          html += ' <span class="time">'+time+'</span>';
+          html += '</li>';
+        } else {
+          // 다른 사람 글
+          html += '<li class="sender">';
+          html += ' <p>'+data.content+'</p>';
+          html += ' <span class="time">'+time+'</span>';
+          html += '</li>';
+        }
+
+        $('#msg-data').append(html);
+
+        // 스크롤
+        document.getElementById('msgBody').scrollTop = document.body.scrollHeight;
+
+        // 창을 닫거나 다른 방으로 이동할 때 SSE 연결 해제
+        window.addEventListener("beforeunload", () => eventSource.close());
+      }
+    },
+    /** 메세지 전송 **/
+    sendMsg : function () {
+      if( !gRoomId ) return alert('채팅방을 선택해주세요.');
+
+      const sendInput = document.getElementById('sendInput');
+      if( sendInput.value === '' ) return alert('메세지를 입력해주세요.');
+
+      const param = {};
+      param.roomId = gRoomId;
+      param.userId = localStorage.getItem('userId');
+      param.content = sendInput.value;
+
+      apiClient.post('http://localhost:8081/api/message/set' , JSON.stringify(param))
+              .then(response => {
+                console.log(response)
+              })
+              .catch( err => {
+                console.log(err);
+              })
+      sendInput.value = '';
+
+    },
+    /** 채팅방 나가기 **/
+    delChat : function () {
+      alert('준비중입니다.');
+    },
+    /** 로그아웃 **/
+    logout : function () {
+      localStorage.removeItem('userId');
+      location.href="../login/login.html";
+    }
+  }
+})();
 </script>
 </html>

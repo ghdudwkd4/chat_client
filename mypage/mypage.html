@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat App</title>
+  <link rel="stylesheet" href="/css/bootstrap.css">
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+  <script src="https://code.jquery.com/ui/1.14.0/jquery-ui.min.js" integrity="sha256-Fb0zP4jE3JHqu+IBB9YktLcSjI1Zc6J2b6gTjB0LpoM=" crossorigin="anonymous"></script>
+  <script src="/js/bootstrap.js"></script>
+  <script src="/js/bootstrap.bundle.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script src="/js/index.js"></script>
+  <script src="/js/common.js"></script>
+  <style>
+    .vibration {
+      animation: vibration .2s infinite;
+    }
+    @keyframes vibration {
+      from {
+        transform: rotate(1deg);
+      }
+      to {
+        transform: rotate(-1deg);
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!--  html 전체 영역을 지정하는 container -->
+<div class="container">
+  <div class="position-absolute w-25 top-50 start-50 translate-middle login-grid">
+
+    <div class="card border-0">
+      <div class="card-body align-self-center">
+        <h2>마이페이지</h2>
+      </div>
+    </div>
+
+    <div class="input-form-box">
+      <label for="username">이메일</label>
+      <input type="email" id="username" class="form-control" required />
+    </div>
+
+    <div class="input-form-box">
+      <label for="nickname">닉네임</label>
+      <input type="email" id="nickname" class="form-control" required />
+    </div>
+
+    <div class="input-form-box">
+      <label for="userJob">직무</label>
+      <input type="text" id="userJob" class="form-control" />
+    </div>
+
+    <div class="input-form-box">
+      <label for="userPicture">프로필 이미지</label>
+      <input type="file" id="userPicture" class="form-control" />
+    </div>
+
+    <div class="button-login-box mt-3">
+      <button type="button" class="btn btn-primary btn-xs w-100" onclick="">저장</button>
+    </div>
+
+    <!--
+    <div class="card mt-5">
+      <div class="card-body">
+        <h4 class="text-center">회원 가입</h4>
+        <button type="button" data-bs-toggle="modal" data-bs-target="#joinModal" class="btn btn-purple btn-xs w-100" >회원 가입</button>
+      </div>
+    </div>
+    -->
+  </div>
+</div>
+
+<script>
+$(function (){
+
+})
+</script>
+
+</body>
+</html>

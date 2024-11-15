@@ -64,6 +64,7 @@
   </div>
 </div>
 
+<!-- 계정 찾기 모달창 -->
 <div class="modal fade" id="forgetModal" tabindex="-1" aria-labelledby="forgetModal" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -73,13 +74,13 @@
       </div>
 
       <div class="modal-body">
-        <div class="mb-3">
+        <div class="mb-3 forget-email-div">
           <span>
             이메일 주소로 임시 비밀번호를 보내드립니다.<br>
             메일이 오지 않는경우 메일 주소를 확인 후 다시 시도해주세요.
           </span>
         </div>
-        <div class="mb-3">
+        <div class="mb-3 forget-email-div">
           <label for="forget-modal-email" class="col-form-label">이메일</label>
           <div class="input-group">
             <input type="text" class="form-control" id="forget-modal-email" />
@@ -91,18 +92,25 @@
           <label for="forget-modal-certification" class="col-form-label">인증번호</label>
           <div class="input-group">
             <input type="text" class="form-control" id="forget-modal-certification" />
-            <button type="button" id="forget-cert-btn" class="btn btn-success" onclick="fn_certCheck(this)">인증하기</button>
+            <button type="button" id="forget-cert-btn" class="btn btn-success" onclick="fn_certCheck(this , 'forget')">인증하기</button>
           </div>
+        </div>
+
+        <div class="mb-3" id="forget-password-div" style="display: none">
+          <label for="forget-modal-password" class="col-form-label">Password</label>
+          <input type="password" class="form-control" id="forget-modal-password" placeholder="대문자, 소문자, 특수문자 최소 1개씩 6~12자리 입력" />
         </div>
       </div>
 
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
+        <button type="button" class="btn btn-primary" onclick="fn_changePass()">변경</button>
       </div>
     </div>
   </div>
 </div>
 
+<!-- 회원가입 모달창 -->
 <div class="modal fade" id="joinModal" tabindex="-1" aria-labelledby="joinModal" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -123,11 +131,17 @@
           <label for="join-modal-certification" class="col-form-label">인증번호</label>
           <div class="input-group">
             <input type="text" class="form-control" id="join-modal-certification" />
-            <button type="button" id="join-cert-btn" class="btn btn-success" onclick="fn_certCheck(this)">인증하기</button>
+            <button type="button" id="join-cert-btn" class="btn btn-success" onclick="fn_certCheck(this , 'join')">인증하기</button>
           </div>
         </div>
 
         <div class="mb-3" id="join-password-div" style="display: none">
+          <label for="join-modal-nickname" class="col-form-label">Nickname</label>
+          <input type="text" class="form-control" id="join-modal-nickname" placeholder="닉네임을 입력 해주세요." />
+
+          <label for="join-modal-job" class="col-form-label">job</label>
+          <input type="text" class="form-control" id="join-modal-job" placeholder="직업를 입력 해주세요" />
+
           <label for="join-modal-password" class="col-form-label">Password</label>
           <input type="password" class="form-control" id="join-modal-password" placeholder="대문자, 소문자, 특수문자 최소 1개씩 6~12자리 입력" />
         </div>
@@ -142,6 +156,13 @@
 
 <script>
 $(function (){
+  // 로그인
+  $('#username , #password').on('keyup',function (e){
+    if(e.keyCode === 13) {
+      fn_login();
+    }
+  })
+
   // 회원가입
   $('#join-modal-dup').on('click', async function (){
 
@@ -208,7 +229,9 @@ $(function (){
 // 비밀번호 찾기 모달창 초기화
 document.getElementById('forgetModal').addEventListener('shown.bs.modal', (e) => {
   $(e.target).find('.mb-3').find('input').val('');
+  $(e.target).find('.mb-3').hide();
   $(e.target).find('.alert').alert('close');
+  $(e.target).find('.forget-email-div').show();
 })
 // 회원가입 모달창 초기화
 document.getElementById('joinModal').addEventListener('shown.bs.modal', (e) => {
@@ -222,6 +245,10 @@ document.getElementById('joinModal').addEventListener('shown.bs.modal', (e) => {
 const emailReg = /^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$/;
 // 비밀번호 정규식
 const passReg = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\W).{6,12}$/;
+// 닉네임 정규식
+const nickReg = /^[A-Za-z0-9ㄱ-ㅎ가-힣]{3,12}$/;
+// 닉네임 정규식
+const jobReg = /[^A-Za-zㄱ-ㅎ가-힣]/g;
 
 // 알림 진동
 const fn_vibration = function (tag) {
@@ -264,8 +291,10 @@ const fn_login = function () {
 
   apiClient.post("http://localhost:8080/api/auth/login" , JSON.stringify(login))
           .then(response => {
+            // 사용자 세팅
+            localStorage.setItem("userId",response.data);
             // 메인 페이지 이동
-            location.href="/chat/chat.html"
+            location.href="/chat_client/chat/chat.html"
           })
           .catch(err => {
             $('#header').append('<div class="alert alert-danger alert-dismissible" role="alert">'+err.response.data+'</div>');
@@ -276,31 +305,20 @@ const fn_login = function () {
 /** 임시 번호 발급 **/
 const fn_email_certification = async function (type) {
 
+  // 메세지 초기화
   $('#'+type+'Modal .alert').alert('close');
 
   let param = {};
   const email = $('#'+type+'-modal-email');
   param.email = email.val();
 
+  $('#'+type+'-cert-div').show();
+  $('#'+type+'Modal .modal-body').append('<div class="alert alert-primary alert-dismissible" role="alert">메일 주소로 인증번호를 보내드렸습니다.<br>메일이 오지 않는경우 메일 주소를 확인 후<br>다시 시도해주세요.</div>');
+  fn_vibration( $('#'+type+'Modal .modal-body').find('.alert') );
 
-  $('#'+type+'Modal .alert').alert('close');
-
-  const url = (type === 'forget' ? 'password' : 'email');
-
-  // 비밀번호 찾기 일 시 메일 발송 후 바로 닫기
-  if( type === 'forget' ) {
-    $('#forgetModal .modal-footer button').click();
-  } else if( type === 'join' ) {
-    $('#'+type+'-cert-div').show();
-    $('#'+type+'Modal .modal-body').append('<div class="alert alert-primary alert-dismissible" role="alert">메일 주소로 인증번호를 보내드렸습니다.<br>메일이 오지 않는경우 메일 주소를 확인 후<br>다시 시도해주세요.</div>');
-    fn_vibration( $('#'+type+'Modal .modal-body').find('.alert') );
-  }
-
-  await apiClient.post("http://localhost:8080/api/send-mail/" + url , JSON.stringify(param))
+  await apiClient.post("http://localhost:8080/api/send-mail/email" , JSON.stringify(param))
           .then(response => {
-            if( type === 'join' ) {
-              $('#'+type+'-cert-btn').data('cert',response.data.code);
-            }
+            $('#'+type+'-cert-btn').data('cert',response.data.code);
           })
           .catch(err => {
             $('#'+type+'Modal .modal-body').append('<div class="alert alert-danger alert-dismissible" role="alert">이메일을 정확히 입력해주세요.</div>');
@@ -310,19 +328,17 @@ const fn_email_certification = async function (type) {
 }
 
 // 인증 번호 확인
-const fn_certCheck = function (btn) {
-  $(btn).parents('.modal').find('.alert').alert('close');
+const fn_certCheck = function (btn , type) {
+  $('#' + type+'Modal').find('.alert').alert('close');
 
   let certStr = $(btn).siblings('input').val();
+  // 인증번호 체크
   if( $(btn).data('cert') !== certStr ) {
     $(btn).parents('.modal-body').append('<div class="alert alert-danger alert-dismissible" role="alert">인증번호가 일치하지 않습니다.<br>확인 후 재시도 바랍니다.</div>');
     fn_vibration( $(btn).parents('.modal-body').find('.alert') );
   } else {
-    // 회원가입 일 시 패스워드 입력 란 노출
-    if(btn.id === 'join-cert-btn') {
-      $(btn).parents('.modal').find('.modal-body').children().not('#join-password-div').hide();
-      $('#join-password-div').show();
-    }
+    $('#' + type+'Modal .modal-body').children().not('#'+type+'-password-div').hide();
+    $('#'+type+'-password-div').show();
   }
 }
 
@@ -345,28 +361,86 @@ const fn_existsByUsername = async function (username) {
 const fn_join = function () {
   const param = {};
   param.username = $('#join-modal-email').val();
+  param.nickname = $('#join-modal-nickname').val().trim();
+  param.job = $('#join-modal-job').val().trim();
   param.password = $('#join-modal-password').val().trim();
+
   if( !passReg.test(param.password) ) {
     $('#joinModal').find('.alert').alert('close');
-    $('#joinModal .modal-body').append('<div class="alert alert-danger alert-dismissible" role="alert">대문자, 소문자, 특수문자 최소 1개씩 6~12자리 입력</div>');
+    $('#joinModal .modal-body').append('<div class="alert alert-danger alert-dismissible" role="alert">password 는 대문자, 소문자, 특수문자 최소 1개씩 6~12자리 입력 가능합니다.</div>');
     fn_vibration( $('#joinModal .modal-body').find('.alert') );
-  } else {
-
-    apiClient.post("http://localhost:8080/api/auth/register" , JSON.stringify(param))
-            .then(response => {
-              if(response) {
-                location.href='/chat_client/chat/chat.html';
-              } else {
-                fn_email_certification(type);
-              }
-            })
-            .catch(err => {
-              $('#joinModal .modal-body').append('<div class="alert alert-danger alert-dismissible" role="alert">'+err.response.data+'</div>');
-              fn_vibration( $('#joinModal .modal-body').find('.alert') );
-            })
+    return false;
   }
+
+  if( !nickReg.test(param.nickname) ) {
+    $('#joinModal').find('.alert').alert('close');
+    $('#joinModal .modal-body').append('<div class="alert alert-danger alert-dismissible" role="alert">nickname 은 영어 대소문자, 숫자, 한글만 가능하며,<br>최소3~12자리까지 가능합니다.</div>');
+    fn_vibration( $('#joinModal .modal-body').find('.alert') );
+    return false;
+  }
+
+  if( jobReg.test(param.job) ) {
+    $('#joinModal').find('.alert').alert('close');
+    $('#joinModal .modal-body').append('<div class="alert alert-danger alert-dismissible" role="alert">job 은 한글과 영어만 입력 가능합니다.</div>');
+    fn_vibration( $('#joinModal .modal-body').find('.alert') );
+    return false;
+  }
+
+
+  apiClient.post("http://localhost:8080/api/auth/register" , JSON.stringify(param))
+          .then(response => {
+            if(response) {
+              location.href='/chat_client/chat/chat.html';
+            }
+          })
+          .catch(err => {
+            $('#joinModal .modal-body').append('<div class="alert alert-danger alert-dismissible" role="alert">'+err.response.data+'</div>');
+            fn_vibration( $('#joinModal .modal-body').find('.alert') );
+          })
 }
 
+// 비밀번호 변경
+const fn_changePass = function () {
+
+  const param = {};
+  const tag = $('#forgetModal .modal-body').find('.alert');
+
+  // 메일
+  param.username = $('#forget-modal-email').val();
+  if(param.username === '') {
+    $('#forgetModal').find('.alert').alert('close');
+    $('#forgetModal .modal-body').append('<div class="alert alert-danger alert-dismissible" role="alert">이메일 인증 후 이용바랍니다.</div>');
+    fn_vibration( tag );
+    return false;
+  }
+
+  // 비밀번호
+  param.password = $('#forget-modal-password').val().trim();
+  if( !passReg.test(param.password) ) {
+    $('#forgetModal').find('.alert').alert('close');
+    $('#forgetModal .modal-body').append('<div class="alert alert-danger alert-dismissible" role="alert">password 는 대문자, 소문자, 특수문자 최소 1개씩 6~12자리 입력</div>');
+    fn_vibration( tag );
+    return false;
+  }
+
+  apiClient.post("http://localhost:8080/api/auth/password" , JSON.stringify(param))
+          .then(response => {
+            if(response.status) {
+              $('#forgetModal .modal-body').append('<div class="alert alert-info alert-dismissible" role="alert">비밀번호가 정상적으로 변경 되었습니다.<br>로그인 후 이용바랍니다.</div>');
+              fn_vibration( tag );
+
+              setTimeout(function () {
+                $('#forgetModal .modal-footer .btn-secondary').click();
+              }, 900)
+
+            }
+          })
+          .catch(err => {
+            $('#forgetModal .modal-body').append('<div class="alert alert-danger alert-dismissible" role="alert">'+err.response.data+'</div>');
+            fn_vibration( tag );
+          })
+
+}
 </script>
 
 </body>
